@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>随机数生成</title>
+    <style type="text/css">
+      .bu{
+        width:400px;
+        height:70px;
+      }
+      #rd{
+		font-size:70px;
+		word-wrap: break-word；
+	    word-break:keep-all;
+	  }
+      #scj{
+		font-size:30px;
+	  }
+      #scqk{
+		width:100%;
+		word-wrap: break-word；
+	    word-break:keep-all;
+	  }
+    </style>
+  </head>
+  <body>
+    <script>
+      var stu=new Array("林萍","陈梦琪","范博竣","许嘉宁","陈琳凡","唐俊楠","戴希羽","凌展辉","陈嘉宏","蔡怡希","王晓铭","许诗漫","林俊杰","林艺磊","方家燊","邱嘉盈","王乐然","林宇航","李文婧","许萍","林予昭","张君昊","陈欣妤","李玥玥","黄凌奕","姚杭隆","蔡其霖","曾淼淼","颜晓佳","潘佳聪","林芷悦","林涛","陈静菲","廖梓睿","杨翊嘉","陈晓榕","郭承旭","吴翔","林蕙","陈昱婧","张凌昊","胡若熹","林亦轩","郑立贤","杨其乐","王于涛","柯新","黄毅欣","吴志洲","朱威仁","潘惠馨","林凯熙");
+	  function rand(){
+        var minn=Number(document.getElementById("min").value);
+        var maxx=Number(document.getElementById("max").value);
+        return Math.floor(Math.random()*(maxx-minn+1)+minn);
+      }
+      function ran(){
+		var txt="";
+		var sl=Number(document.getElementById("sl").value);
+		if(document.getElementById("nl").style.display=="none"){
+		  sl=1;
+		}
+		for(var i=1;i<=sl;i++){
+		  txt=txt+String(rand())+"&nbsp&nbsp&nbsp&nbsp";
+		}
+		document.getElementById("rd").innerHTML=txt;
+	  }
+      function drand(){
+		var txt="";
+		var sl=Number(document.getElementById("sl").value);
+		if(document.getElementById("nl").style.display=="none"){
+		  sl=1;
+		}
+		for(var i=1;i<=sl;i++){
+		  txt=txt+stu[rand()]+"&nbsp&nbsp&nbsp&nbsp";
+		}
+        document.getElementById("rd").innerHTML=txt;
+      }
+	  function reset(){
+		var shuc=document.getElementById("rd");
+		if(document.getElementById("jianzhi").checked){
+			shuc.innerHTML="Are you ready?";
+		}else{ 
+			shuc.innerHTML="准备好就直接来吧";
+		}
+	  }
+      function duiy(){
+		var x=document.getElementById("scj");
+		var sc=document.getElementById("sc");
+		var shu=document.getElementById("shul");
+		var scwen=document.getElementById("rd");
+		var shuc=document.getElementById("rd");
+		var slw=document.getElementById("slw");
+        if(document.getElementById("jianzhi").checked){
+			x.onclick=function(){drand()};
+			x.innerHTML="BINGO!";
+			sc.innerHTML="Lucky Dog";
+			shu.innerHTML="Luck Dog<strong>s</strong>";
+			slw.innerHTML="Number";
+		}else{ 
+			x.onclick=function(){ran()};
+			x.innerHTML="生成";
+			sc.innerHTML="生成数";
+			shu.innerHTML="生成森林";
+			slw.innerHTML="数量";
+		}
+		reset();
+      }
+	  function duo(){
+		  var x=document.getElementById("nl");
+		  if(document.getElementById("shu").checked){
+			  x.style.display="block";
+		  }else{
+			  x.style.display="none";
+		  }
+		  reset();
+	  }
+	  function fu(){
+		var x=document.getElementById("shu");
+		var vis=new Array;
+		if(x.checked){
+		  
+		}else{
+		  
+		}
+	  }
+      function init(){
+        duo();duiy();
+      }
+	  init();
+    </script>
+    <h1 align="center">随机数生成</h1><hr>
+    <div>
+      <label>最小值:</label>
+      <input id="min" value="1"><br>
+      <label>最大值:</label>
+      <input id="max" value="55">
+    </div>
+    <hr>
+    <div align="center" id="scqk">
+      <h2 id="sc">生成数</h2>
+      <p id="rd">准备好就直接来吧</p>
+    </div>
+    <div align="center">
+      <button class="bu" accesskey="r" onclick="ran()" id="scj">生成</button>
+    </div>
+	<hr>
+    <input type="checkbox" id="jianzhi" onclick="duiy()"><label>高一五班专用(1~51)</label><br>
+    <input type="checkbox" id="shu" onclick="duo()"><label id="shul">生成森林</label>
+	<div id="nl" style="display:none">
+	  <label id="slw">数量:</label>
+	  <input id="sl" value="5"><br>
+	</div>
+	<input type="checkbox" id="chong" onclick="fu()" checked style="display:none"><label style="display:none">不重复</label>
+  </body>
+</html>
+<!--这是一个注释-->
