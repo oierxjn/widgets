@@ -1,5 +1,5 @@
 # File Renaming Tool
-
+[简体中文(SChinese)](https://github.com/oierxjn/widgets/blob/main/FileRenameTool/README_zh.md)
 ## Introduction
 This is a powerful file renaming tool that supports both graphical user interface (GUI) and command - line usage modes. Users can set various renaming rules according to their needs, such as setting the maximum file name length, adding prefixes, matching specific prefixes or suffixes, matching specific characters, and deleting specific characters.
 
