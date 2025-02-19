@@ -1,42 +1,57 @@
 # File Renaming Tool
 
-## Overview
-This tool is designed to rename files in a specified directory according to certain rules. You can specify the maximum file name length, the prefix for renaming, the prefix for matching file names, and file extensions to filter files.
+## Introduction
+This is a powerful file renaming tool that supports both graphical user interface (GUI) and command - line usage modes. Users can set various renaming rules according to their needs, such as setting the maximum file name length, adding prefixes, matching specific prefixes or suffixes, matching specific characters, and deleting specific characters.
 
-## Usage
+## Features
+1. **Multiple Renaming Rules**: It supports setting multiple renaming rules, including the maximum file name length, adding prefixes, matching file name prefixes, matching file extensions, matching specific characters, and deleting specific characters.
+2. **Recursive Processing**: It can recursively traverse the specified directory and its sub - directories to rename all files within them.
+3. **Progress Display**: In GUI mode, a progress bar is provided to show the renaming progress, making it convenient for users to track the operation status.
+4. **Error Logging**: Errors that occur during the renaming process are recorded in the `rename_errors.log` file, which helps users troubleshoot issues.
+5. **Auto - Scroll**: In GUI mode, users can choose whether to enable the auto - scroll function for the result text box, making it easier to view the latest renaming information.
 
-### 1. Command - Line Mode
-You can use the following command - line arguments when running the Python script:
+## Installation and Usage
+
+### Installation
+This tool is written in Python and does not require additional installation. Just make sure you have Python 3.x installed on your system.
+
+### GUI Mode
+Run the `FileRenameTool.py` file directly without any parameters, and the program will automatically open the graphical user interface:
 ```bash
-python FileRenameTool.py <directory> [--max_length <max_length>] [--prefix <prefix>] [--match_prefix <match_prefix>] [--file_extensions <file_extensions>]
+python FileRenameTool.py
+```
+In the GUI interface, you can follow these steps:
+1. **Select Directory**: Click the "Select Directory" button to choose the directory where the files to be renamed are located.
+2. **Set Renaming Rules**: Enter the maximum file name length, renaming prefix, matching file name prefix, matching file extensions, matching characters for renaming files, and characters to be removed from file names in the corresponding input boxes. Separate multiple keywords with commas. If a keyword is empty, the corresponding rule will not be enabled.
+3. **Auto - Scroll Setting**: Check the "Automatically scroll the text box to the bottom" checkbox. The result text box will automatically scroll to the bottom when new information is added.
+4. **Start Renaming**: Click the "Start Renaming" button. The program will start renaming files according to the rules you set, and the current progress will be displayed in the progress bar.
+
+### Command - Line Mode
+Run the `FileRenameTool.py` file in the command line and pass the corresponding parameters:
+```bash
+python FileRenameTool.py <directory> [--max_length <max_length>] [--prefix <prefix>] [--match_prefix <match_prefix>] [--file_extensions <file_extensions>] [--match_chars <match_chars>] [--remove_chars <remove_chars>]
 ```
 
-### Parameter Table
-| Parameter Name | Required | Description | Default Value | Example |
-| ---- | ---- | ---- | ---- | ---- |
-| `<directory>` | Yes | The path of the directory where the files to be renamed are located. | None | `/path/to/directory` |
-| `--max_length <max_length>` | No | The maximum length of the file name. If the file name length exceeds this value, the file name will be truncated. | 0 (No limit on file name length) | `10` |
-| `--prefix <prefix>` | No | The prefix to be added during file renaming. | Empty string (No prefix added) | `new_` |
-| `--match_prefix <match_prefix>` | No | The prefix used to match file names. Only files whose names start with this prefix will be renamed. | Empty string (No prefix matching) | `old_` |
-| `--file_extensions <file_extensions>` | No | Specified file extensions, separated by commas. Only files with the specified extensions will be renamed. | Empty string (No limit on file extensions) | `.txt,.jpg` |
+| Parameter | Required | Description | Default Value |
+| --- | --- | --- | --- |
+| `<directory>` | Yes | Specify the directory containing the files to be renamed | None |
+| `--max_length` | No | Set the maximum file name length. Enter 0 to indicate no limit | 0 |
+| `--prefix` | No | Set the renaming prefix, which will be added to the front of the file name | Empty string |
+| `--match_prefix` | No | Specify the prefixes to match in file names. Separate multiple prefixes with commas. Only files with matching prefixes will be renamed | Empty string |
+| `--file_extensions` | No | Specify the file extensions to match. Separate multiple extensions with commas. Only files with matching extensions will be renamed | Empty string |
+| `--match_chars` | No | Specify the characters to match in file names. Separate multiple characters with commas. Only files containing these characters will be renamed | Empty string |
+| `--remove_chars` | No | Specify the characters to be removed from file names. Separate multiple characters with commas | Empty string |
 
-### Examples
-- Rename all files in the specified directory without limiting the file name length and without adding a prefix:
+### Example
+Here is an example of using the command - line mode to add the `new_` prefix to all files with the `.txt` extension in the `C:\test` directory and limit the file name length to 10:
 ```bash
-python FileRenameTool.py /path/to/directory
-```
-- Rename all `.txt` files in the specified directory, with a maximum file name length of 10 and adding the prefix `new_`:
-```bash
-python FileRenameTool.py /path/to/directory --max_length 10 --prefix new_ --file_extensions .txt
-```
-- Rename all files starting with `old_` in the specified directory, without limiting the file name length and without adding a prefix:
-```bash
-python FileRenameTool.py /path/to/directory --match_prefix old_
+python FileRenameTool.py C:\test --max_length 10 --prefix new_ --file_extensions .txt
 ```
 
-### Notes
-- If you enter incorrect parameter formats when using the tool in command - line mode, the tool will prompt an error message.
-- If an error occurs during the renaming process, the error information will be recorded in the `rename_errors.log` file.
+## Notes
+1. When using the command - line mode, make sure the input parameters are in the correct format; otherwise, the program may malfunction.
+2. The renaming operation is irreversible. Please back up important files before the operation to avoid data loss.
+3. If an error occurs during the renaming process, the program will record the error information in the `rename_errors.log` file. You can view this file to understand the specific error cause.
 
-### 2. GUI Mode
-If you do not provide any command - line arguments, the tool will start in GUI mode. You can interact with the graphical interface to select the directory, set parameters, and start the renaming process. 
+## Contribution
+If you find any issues or have suggestions for improvement, please feel free to submit an Issue or a Pull Request.
