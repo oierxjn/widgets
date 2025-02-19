@@ -1,5 +1,5 @@
 # 文件重命名工具
-
+[英文(English)](https://github.com/oierxjn/widgets/blob/main/FileRenameTool/README_zh.md)
 ## 简介
 这是一个功能强大的文件重命名工具，支持图形用户界面（GUI）和命令行两种使用方式。用户可以根据自己的需求设置多种重命名规则，如设置最大文件名长度、添加前缀、匹配特定前缀或后缀、匹配特定字符以及删除特定字符等。
 
