@@ -11,12 +11,11 @@ import threading
 def_max_length = 0
 def_prefix = ""
 
-# 日志配置函数，在出现错误时调用
-def configure_logging():
-    logging.basicConfig(filename='rename_errors.log', level=logging.ERROR,
-                        format='%(asctime)s - %(levelname)s - %(message)s')
+# 日志配置
+logging.basicConfig(filename='rename_errors.log', level=logging.ERROR,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
-
+# 收集指定目录下的所有文件
 def collect_all_files(directory):
     all_files = []
     if not os.path.exists(directory):
@@ -30,13 +29,11 @@ def collect_all_files(directory):
             all_files.append(item_path)
     return all_files
 
-
-def rename_files(all_files, max_length=def_max_length, prefix=def_prefix, match_prefix="", file_extensions=[],
-                 match_chars="", remove_chars="", progress_callback=None):
-    total_files = len(all_files)
-    processed_files = 0
+# 筛选出符合重命名规则的文件
+def filter_files(all_files, max_length=def_max_length, prefix=def_prefix, match_prefix="", file_extensions=[],
+                 match_chars="", remove_chars=""):
+    filtered_files = []
     for file_path in all_files:
-        result_text.insert(tk.END, f"正在重命名第 {processed_files + 1} 个文件，共 {total_files} 个文件\n")
         filename = os.path.basename(file_path)
         # 匹配文件规则
         if file_extensions and not any(filename.endswith(ext) for ext in file_extensions):
@@ -45,7 +42,20 @@ def rename_files(all_files, max_length=def_max_length, prefix=def_prefix, match_
             continue
         if match_chars and not any(char in filename for char in match_chars.split(',')):
             continue
+        name, _ = os.path.splitext(filename)
+        if max_length and len(name) <= max_length:
+            continue
+        filtered_files.append(file_path)
+    return filtered_files
 
+# 重命名文件
+def rename_files(all_files, max_length=def_max_length, prefix=def_prefix, match_prefix="", file_extensions=[],
+                 match_chars="", remove_chars="", progress_callback=None):
+    filtered_files = filter_files(all_files, max_length, prefix, match_prefix, file_extensions, match_chars, remove_chars)
+    total_files = len(filtered_files)
+    processed_files = 0
+    for file_path in filtered_files:
+        filename = os.path.basename(file_path)
         name, ext = os.path.splitext(filename)
         # 最大文件名长度限制
         if max_length and len(name) > max_length:
@@ -71,8 +81,6 @@ def rename_files(all_files, max_length=def_max_length, prefix=def_prefix, match_
             if auto_scroll_var.get():
                 result_text.see(tk.END)
         except Exception as e:
-            # 出现错误时配置日志记录
-            configure_logging()
             result_text.insert(tk.END, f"重命名 {file_path} 时出错: {e}\n")
             logging.error(f"重命名 {file_path} 时出错: {e}")
             if auto_scroll_var.get():
@@ -86,7 +94,7 @@ def rename_files(all_files, max_length=def_max_length, prefix=def_prefix, match_
         result_text.see(tk.END)
     messagebox.showinfo("提示", "重命名已完成！")
 
-
+# 选择目录
 def select_directory():
     directory = filedialog.askdirectory()
     if directory:
@@ -96,7 +104,7 @@ def select_directory():
         directory_entry.delete(0, tk.END)
         directory_entry.insert(0, directory)
 
-
+# 开始重命名
 def start_rename(root):
     directory = directory_entry.get()
     if not os.path.exists(directory):
@@ -122,11 +130,19 @@ def start_rename(root):
         rename_files(all_files, max_length, prefix=prefix_entry.get(), match_prefix=match_prefix,
                      file_extensions=file_extensions, match_chars=match_chars,
                      remove_chars=remove_chars, progress_callback=update_progress)
+        # 重命名完成后启用按钮
+        start_button.config(state=tk.NORMAL)
 
-    thread = threading.Thread(target=rename_thread)
-    thread.start()
+    # 重命名过程中禁用按钮
+    start_button.config(state=tk.DISABLED)
+    try:
+        thread = threading.Thread(target=rename_thread)
+        thread.start()
+    except Exception as e:
+        result_text.insert(tk.END, f"启动重命名线程时出错: {e}\n")
+        start_button.config(state=tk.NORMAL)
 
-
+# 工具提示类
 class ToolTip(object):
     def __init__(self, widget, text='widget info'):
         self.waittime = 500
@@ -175,10 +191,10 @@ class ToolTip(object):
         if tw:
             tw.destroy()
 
-
+# 创建GUI
 def create_gui():
     global directory_entry, max_length_entry, prefix_entry, match_prefix_entry, file_extensions_entry, match_chars_entry
-    global result_text, progress_bar, remove_chars_entry, auto_scroll_var
+    global result_text, progress_bar, remove_chars_entry, auto_scroll_var, start_button
     root = tk.Tk()
     root.title("文件重命名工具")
 
@@ -264,7 +280,7 @@ def create_gui():
 
     root.mainloop()
 
-
+# 命令行运行
 def run_with_args():
     parser = argparse.ArgumentParser(description='文件重命名工具')
     parser.add_argument('directory', type=str, help='要重命名文件的目录')
@@ -287,7 +303,6 @@ def run_with_args():
     all_files = collect_all_files(args.directory)
     rename_files(all_files, args.max_length, args.prefix, args.match_prefix, file_extensions,
                  args.match_chars, args.remove_chars, dummy_progress_callback)
-
 
 if __name__ == "__main__":
     import sys
