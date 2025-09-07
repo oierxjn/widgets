@@ -14,4 +14,6 @@ This tool is designed to rename files in a specified directory according to cert
 FileDeleter is a practical Python program that provides two operation modes: command - line arguments and Graphical User Interface (GUI). It helps users delete files in a specified directory according to specific rules. Users can filter files based on file prefixes, suffixes, and characters within the file content. Only files that meet all selected rules simultaneously will be deleted.
 
 ## WechatMIL
-Its full name is WeChat Multi-Instance Launcher.It was developed for My daily use(you know I've had a second Wechat account since college) and is written in VBScript.
+Its full name is WeChat Multi-Instance Launcher.It was developed for My daily use(you know I've had a second Wechat account since college) and is written in VBScript.  
+Just a heads-up: you'll need to log out of WeChat first before using this tool.
+
