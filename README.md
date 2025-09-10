@@ -18,4 +18,5 @@ Its full name is WeChat Multi-Instance Launcher.It was developed for My daily us
 Just a heads-up: you'll need to log out of WeChat first before using this tool.
 
 ## ProxySettings
-ProxySettings is a lightweight VBScript tool,which is designed to quickly connect NekoBox of my phone via hotpot.It contains enable proxy and disable proxy.
+ProxySettings is a lightweight VBScript tool,which is designed to quickly connect NekoBox of my phone via hotpot.It contains functions to replace and restore proxy settings.
+
