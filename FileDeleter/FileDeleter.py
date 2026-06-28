@@ -19,34 +19,62 @@ LABEL_TOOLTIPS = {
 }
 
 
-def count_files_to_delete(directory, prefixes, suffixes, contents):
+def should_delete_file(file_path, prefixes, suffixes, contents):
     """
-    统计需要删除的文件数量
+    判断文件是否满足所有删除规则（AND 关系）
+    :param file_path: 文件的完整路径
+    :param prefixes: 匹配的文件前缀列表，为空则跳过此规则
+    :param suffixes: 匹配的文件后缀列表，为空则跳过此规则
+    :param contents: 匹配的文件内容关键字列表，为空则跳过此规则
+    :return: True 表示该文件满足所有规则，应该被删除
+    """
+    filename = os.path.basename(file_path)
+
+    # 前缀规则：文件名必须以列表中某个前缀开头
+    if prefixes:
+        if not any(filename.startswith(prefix) for prefix in prefixes):
+            return False
+
+    # 后缀规则：文件名必须以列表中某个后缀结尾
+    if suffixes:
+        if not any(filename.endswith(suffix) for suffix in suffixes):
+            return False
+
+    # 内容规则：文件内容必须包含列表中某个关键字
+    if contents:
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                file_content = f.read()
+            if not any(content in file_content for content in contents):
+                return False
+        except Exception:
+            # 无法读取文件内容（如二进制文件、权限不足等），视为不匹配
+            return False
+
+    return True
+
+
+def collect_files_to_delete(directory, prefixes, suffixes, contents):
+    """
+    遍历目录，收集所有满足删除规则的文件路径
     :param directory: 要搜索的目录
     :param prefixes: 匹配的文件前缀列表
     :param suffixes: 匹配的文件后缀列表
     :param contents: 匹配的文件内容关键字列表
-    :return: 需要删除的文件数量
+    :return: 满足条件的文件路径列表
     """
-    count = 0
+    if not os.path.exists(directory):
+        raise FileNotFoundError(f"指定的目录 {directory} 不存在。")
+    if not os.path.isdir(directory):
+        raise NotADirectoryError(f"{directory} 不是一个有效的目录。")
+
+    matched_files = []
     for root, dirs, files in os.walk(directory):
         for file in files:
             file_path = os.path.join(root, file)
-            should_delete = True
-            if prefixes:
-                should_delete = any(file.startswith(prefix) for prefix in prefixes) and should_delete
-            if suffixes:
-                should_delete = any(file.endswith(suffix) for suffix in suffixes) and should_delete
-            if contents:
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        file_content = f.read()
-                        should_delete = any(content in file_content for content in contents) and should_delete
-                except Exception:
-                    should_delete = False
-            if should_delete:
-                count += 1
-    return count
+            if should_delete_file(file_path, prefixes, suffixes, contents):
+                matched_files.append(file_path)
+    return matched_files
 
 
 def delete_files(directory, prefixes, suffixes, contents, output_text, progress_bar):
@@ -59,50 +87,35 @@ def delete_files(directory, prefixes, suffixes, contents, output_text, progress_
     :param output_text: 用于输出信息的文本框
     :param progress_bar: 进度条
     """
-    if not os.path.exists(directory):
-        error_msg = f"指定的目录 {directory} 不存在。"
-        output_text.insert(tk.END, f"错误: {error_msg}\n")
-        raise FileNotFoundError(error_msg)
-    if not os.path.isdir(directory):
-        error_msg = f"{directory} 不是一个有效的目录。"
-        output_text.insert(tk.END, f"错误: {error_msg}\n")
-        raise NotADirectoryError(error_msg)
+    # 先收集所有匹配的文件（一次遍历）
+    try:
+        files_to_delete = collect_files_to_delete(directory, prefixes, suffixes, contents)
+    except (FileNotFoundError, NotADirectoryError) as e:
+        output_text.insert(tk.END, f"错误: {e}\n")
+        raise
 
-    total_files = count_files_to_delete(directory, prefixes, suffixes, contents)
+    total_files = len(files_to_delete)
+    if total_files == 0:
+        output_text.insert(tk.END, "没有找到匹配的文件。\n")
+        return
+
     deleted_files = 0
-
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            file_path = os.path.join(root, file)
-            should_delete = True
-            if prefixes:
-                should_delete = any(file.startswith(prefix) for prefix in prefixes) and should_delete
-            if suffixes:
-                should_delete = any(file.endswith(suffix) for suffix in suffixes) and should_delete
-            if contents:
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        file_content = f.read()
-                        should_delete = any(content in file_content for content in contents) and should_delete
-                except Exception:
-                    should_delete = False
-
-            if should_delete:
-                try:
-                    os.remove(file_path)
-                    output_text.insert(tk.END, f"Deleted: {file_path}\n")
-                    deleted_files += 1
-                    progress = (deleted_files / total_files) * 100
-                    progress_bar['value'] = progress
-                    output_text.update_idletasks()
-                except PermissionError:
-                    error_msg = f"没有权限删除文件 {file_path}。"
-                    output_text.insert(tk.END, error_msg + "\n")
-                    raise PermissionError(error_msg)
-                except Exception as e:
-                    error_msg = f"删除文件 {file_path} 时出现未知错误: {e}"
-                    output_text.insert(tk.END, error_msg + "\n")
-                    raise Exception(error_msg)
+    for file_path in files_to_delete:
+        try:
+            os.remove(file_path)
+            output_text.insert(tk.END, f"Deleted: {file_path}\n")
+            deleted_files += 1
+            progress = (deleted_files / total_files) * 100
+            progress_bar['value'] = progress
+            output_text.update_idletasks()
+        except PermissionError:
+            error_msg = f"没有权限删除文件 {file_path}，跳过。"
+            output_text.insert(tk.END, error_msg + "\n")
+            logging.error(error_msg)
+        except Exception as e:
+            error_msg = f"删除文件 {file_path} 时出现未知错误: {e}，跳过。"
+            output_text.insert(tk.END, error_msg + "\n")
+            logging.error(error_msg)
 
 
 def arg_mode():
