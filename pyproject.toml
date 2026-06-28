@@ -1,0 +1,12 @@
+[project]
+name = "widgets"
+version = "0.1.0"
+description = "工具库"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "mypy>=2.1.0",
+]
