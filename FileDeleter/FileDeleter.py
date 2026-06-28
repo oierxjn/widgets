@@ -7,19 +7,36 @@ from tkinter import scrolledtext
 from tkinter import ttk
 import logging
 import threading
+from typing import List, Protocol
 
 # 定义警告信息
-WARNING_MSG = "删除操作不可逆，请在使用前确保你要删除的文件是你真正需要删除的，以免造成数据丢失。"
+WARNING_MSG: str = "删除操作不可逆，请在使用前确保你要删除的文件是你真正需要删除的，以免造成数据丢失。"
 
 # 功能标签的解释信息
-LABEL_TOOLTIPS = {
+LABEL_TOOLTIPS: dict[str, str] = {
     "文件前缀:": "输入文件的前缀，多个前缀用竖线 | 分隔，符合这些前缀的文件将参与筛选",
     "文件后缀:": "输入文件的后缀，多个后缀用竖线 | 分隔，符合这些后缀的文件将参与筛选",
     "匹配字符:": "输入文件内容中要匹配的字符，多个字符用竖线 | 分隔，文件内容包含这些字符的文件将参与筛选"
 }
 
 
-def should_delete_file(file_path, prefixes, suffixes, contents):
+class OutputProtocol(Protocol):
+    """delete_files 需要的输出接口：支持 insert 和 update_idletasks"""
+    def insert(self, index: str, chars: str, *args: str) -> None: ...
+    def update_idletasks(self) -> None: ...
+
+
+class ProgressBarProtocol(Protocol):
+    """delete_files 需要的进度条接口：支持字典式赋值 value"""
+    def __setitem__(self, key: str, value: float) -> None: ...
+
+
+def should_delete_file(
+    file_path: str,
+    prefixes: List[str],
+    suffixes: List[str],
+    contents: List[str]
+) -> bool:
     """
     判断文件是否满足所有删除规则（AND 关系）
     :param file_path: 文件的完整路径
@@ -54,7 +71,12 @@ def should_delete_file(file_path, prefixes, suffixes, contents):
     return True
 
 
-def collect_files_to_delete(directory, prefixes, suffixes, contents):
+def collect_files_to_delete(
+    directory: str,
+    prefixes: List[str],
+    suffixes: List[str],
+    contents: List[str]
+) -> List[str]:
     """
     遍历目录，收集所有满足删除规则的文件路径
     :param directory: 要搜索的目录
@@ -77,7 +99,14 @@ def collect_files_to_delete(directory, prefixes, suffixes, contents):
     return matched_files
 
 
-def delete_files(directory, prefixes, suffixes, contents, output_text, progress_bar):
+def delete_files(
+    directory: str,
+    prefixes: List[str],
+    suffixes: List[str],
+    contents: List[str],
+    output_text: OutputProtocol,
+    progress_bar: ProgressBarProtocol
+) -> None:
     """
     根据匹配规则删除文件
     :param directory: 要搜索的目录
@@ -118,7 +147,7 @@ def delete_files(directory, prefixes, suffixes, contents, output_text, progress_
             logging.error(error_msg)
 
 
-def arg_mode():
+def arg_mode() -> None:
     """
     参数调用模式
     """
@@ -132,14 +161,17 @@ def arg_mode():
 
     # 模拟文本框和进度条输出
     class MockOutput:
-        def insert(self, _, text):
-            print(text.strip())
+        def insert(self, index: str, chars: str, *args: str) -> None:
+            print(chars.strip())
+
+        def update_idletasks(self) -> None:
+            pass
 
     class MockProgressBar:
-        def __init__(self):
-            self.value = 0
+        def __init__(self) -> None:
+            self.value: float = 0
 
-        def __setitem__(self, key, value):
+        def __setitem__(self, key: str, value: float) -> None:
             if key == 'value':
                 self.value = value
                 # 使用 ANSI 转义序列覆盖之前的输出
@@ -164,17 +196,17 @@ def arg_mode():
         print(f"错误: {e}")
 
 
-def gui_mode():
+def gui_mode() -> None:
     """
     GUI 工作模式
     """
 
-    def select_directory():
+    def select_directory() -> None:
         directory = filedialog.askdirectory()
         directory_entry.delete(0, tk.END)
         directory_entry.insert(0, directory)
 
-    def execute_deletion():
+    def execute_deletion() -> None:
         directory = directory_entry.get()
         prefixes = [prefix.strip() for prefix in (prefix_entry.get() or "").split('|') if prefix.strip()]
         suffixes = [suffix.strip() for suffix in (suffix_entry.get() or "").split('|') if suffix.strip()]
@@ -184,7 +216,7 @@ def gui_mode():
             messagebox.showwarning("警告", "未指定任何匹配规则，请在输入框中输入匹配关键字。")
             return
 
-        def deletion_thread():
+        def deletion_thread() -> None:
             try:
                 progress_bar['value'] = 0
                 delete_files(directory, prefixes, suffixes, contents, output_text, progress_bar)
@@ -203,7 +235,7 @@ def gui_mode():
         thread = threading.Thread(target=deletion_thread)
         thread.start()
 
-    def show_tooltip(event):
+    def show_tooltip(event: tk.Event) -> None:
         widget = event.widget
         text = widget.cget("text")
         if text in LABEL_TOOLTIPS:
@@ -212,13 +244,13 @@ def gui_mode():
             tooltip.wm_geometry(f"+{event.x_root + 20}+{event.y_root + 20}")
             label = tk.Label(tooltip, text=LABEL_TOOLTIPS[text], background="#ffffe0", relief="solid", borderwidth=1)
             label.pack()
-            widget.tooltip = tooltip
+            widget.tooltip = tooltip  # pyright: ignore[reportAttributeAccessIssue]
 
-    def hide_tooltip(event):
+    def hide_tooltip(event: tk.Event) -> None:
         widget = event.widget
         if hasattr(widget, 'tooltip'):
-            widget.tooltip.destroy()
-            del widget.tooltip
+            widget.tooltip.destroy()  # pyright: ignore[reportAttributeAccessIssue]
+            del widget.tooltip  # pyright: ignore[reportAttributeAccessIssue]
 
     root = tk.Tk()
     root.title("文件删除工具")
